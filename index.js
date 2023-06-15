@@ -44,22 +44,22 @@ async function run() {
         });
 
         // ! get only admin logged user
-        app.get('/admin/:email',  async (req, res) => {
+        app.get('/admin/:email', async (req, res) => {
             const email = req.params.email;
             const query = { email: email }
             const user = await usersCollection.findOne(query);
             const result = { admin: user?.role === 'admin' }
             res.send(result);
-          })
+        })
 
         // ! get only instructor logged user
-        app.get('/instructor/:email',  async (req, res) => {
+        app.get('/instructor/:email', async (req, res) => {
             const email = req.params.email;
             const query = { email: email }
             const user = await usersCollection.findOne(query);
             const result = { instructor: user?.role === 'instructor' }
             res.send(result);
-          })
+        })
 
         // ! [Create a Login user api. and save user data server and database both]
         app.post('/users', async (req, res) => {
@@ -145,21 +145,21 @@ async function run() {
             const updateDoc = {
                 $set: {
                     className: body.className,
-                    image : body.image,
-                    name : body.name,
-                    email : body.email,
-                    availableSeats : body.availableSeats,
-                    price:body.price
+                    image: body.image,
+                    name: body.name,
+                    email: body.email,
+                    availableSeats: body.availableSeats,
+                    price: body.price
                 },
             };
-            const result = await classCollection.updateOne(filter, updateDoc,options);
+            const result = await classCollection.updateOne(filter, updateDoc, options);
             res.send(result);
 
         })
 
-        
 
- 
+
+
         //  ** Admin Releted Api **
 
         // !My Classes set Status:** 
@@ -171,10 +171,10 @@ async function run() {
             const options = { upsert: true };
             const updateDoc = {
                 $set: {
-                    status:body.status
+                    status: body.status
                 },
             };
-            const result = await classCollection.updateOne(filter, updateDoc,options);
+            const result = await classCollection.updateOne(filter, updateDoc, options);
             res.send(result);
 
         })
@@ -186,7 +186,7 @@ async function run() {
             const filter = { _id: new ObjectId(id) };
             const updateDoc = {
                 $set: {
-                    feedback:body.feedback
+                    feedback: body.feedback
                 },
             };
 
@@ -197,15 +197,35 @@ async function run() {
 
 
         // ** Student Releted Api **
-        
+
+        //! get a student  seleted class
+        app.get('/selected_classes', async (req, res) => {
+            const email = req.query.email;
+
+            if (!email) {
+                res.send([]);
+            }
+            const query = { email: email };
+            const result = await selectedClassesCollection.find(query).toArray();
+            res.send(result);
+        });
+
+        //! create a seleted class
         app.post('/selected_classes', async (req, res) => {
-            const item = req.body;
-            const result = await classCollection.insertOne(item);
+            const select_class = req.body;
+            const result = await selectedClassesCollection.insertOne(select_class);
             res.send(result);
         })
 
+         //! delete a seleted class
+        app.delete('/selected_classes/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const result = await selectedClassesCollection.deleteOne(query);
+            res.send(result);
+        })
         // Send a ping to confirm a successful connection
-        // await client.db("admin").command({ ping: 1 });
+        await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
     } finally {
         // Ensures that the client will close when you finish/error
